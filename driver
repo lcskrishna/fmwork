@@ -54,6 +54,10 @@ def setup_args():
     parser.add_argument('--max_num_seqs',         type = int)
     parser.add_argument('--num_scheduler_steps',  type = int, default  = 1)
     parser.add_argument('--reps',                 type = int, default  = 5)
+    parser.add_argument('--disable_custom_allreduce', action='store_true')
+    parser.add_argument('--enable_chunked_prefill', action='store_true')
+    parser.add_argument('--enable_prefix_caching', action='store_true')
+    parser.add_argument('--enforce_eager', action='store_true')
     parser.parse_args(namespace = par)
 
 def setup_engine():
@@ -71,8 +75,11 @@ def setup_engine():
         max_model_len        = max_model_len,
         max_num_seqs         = max_num_seqs,
         tensor_parallel_size = par.tensor_parallel_size,
-        enforce_eager        = True,
+        enforce_eager        = par.enforce_eager,
         num_scheduler_steps  = par.num_scheduler_steps,
+        disable_custom_all_reduce = par.disable_custom_allreduce,
+        enable_chunked_prefill = par.enable_chunked_prefill,
+        enable_prefix_caching = par.enable_prefix_caching,
     )
 
 def setup_input():
