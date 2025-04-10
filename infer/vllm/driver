@@ -78,6 +78,8 @@ def params():
     parser.add_argument('--trace_outputs', action='store_true')
     parser.add_argument('--stop_itl', type=float)
     parser.add_argument('--enable_prefix_caching', action='store_true')
+    parser.add_argument('--max_seq_len_to_capture', type=int, default=2048)
+    parser.add_argument('--max_num_batched_tokens', type=int, default=2048)
 
     parser.parse_args(namespace=par)
 
@@ -126,6 +128,8 @@ def llm():
         max_num_seqs                 = par.max_num_seqs,
         enable_chunked_prefill       = par.enable_chunked_prefill,
         enable_prefix_caching        = par.enable_prefix_caching,
+        max_seq_len_to_capture       = par.max_seq_len_to_capture,
+        max_num_batched_tokens       = par.max_num_batched_tokens,
     )
 
     t1 = fmwork.time_get()
