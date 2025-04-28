@@ -80,6 +80,7 @@ def params():
     parser.add_argument('--enable_prefix_caching', action='store_true')
     parser.add_argument('--max_seq_len_to_capture', type=int)
     parser.add_argument('--max_num_batched_tokens', type=int)
+    parser.add_argument('--profile', action='store_true', help='enable PyTorch profiler in vLLM')
 
     parser.parse_args(namespace=par)
 
@@ -239,7 +240,11 @@ def run(input_size, output_size, batch_size):
         fmwork.t0()
         #with MADProfiler(backend="rpd", nvtx_tracing=True):
         #    outputs = var.llm.generate(**kwargs)
+        if par.profile:
+            var.llm.start_profile()
         outputs = var.llm.generate(**kwargs)
+        if par.profile:
+            var.llm.stop_profile()
         torch.cuda.synchronize()
         ret = fmwork.t1(
             rep, par.reps,
