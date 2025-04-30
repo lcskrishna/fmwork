@@ -58,6 +58,7 @@ def setup_args():
     parser.add_argument('--enable_chunked_prefill', action='store_true')
     parser.add_argument('--enable_prefix_caching', action='store_true')
     parser.add_argument('--enforce_eager', action='store_true')
+    parser.add_argument('--kv_cache_dtype', type=str, default='auto')
     parser.parse_args(namespace = par)
 
 def setup_engine():
@@ -80,6 +81,7 @@ def setup_engine():
         disable_custom_all_reduce = par.disable_custom_allreduce,
         enable_chunked_prefill = par.enable_chunked_prefill,
         enable_prefix_caching = par.enable_prefix_caching,
+        kv_cache_dtype        = par.kv_cache_dtype,
     )
 
 def setup_input():
