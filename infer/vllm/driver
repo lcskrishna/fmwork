@@ -1,6 +1,7 @@
 #!/usr/bin/env -S python -u
 
 import argparse
+import json
 import fmwork
 import torch
 import traceback
@@ -80,6 +81,9 @@ def params():
     parser.add_argument('--enable_prefix_caching', action='store_true')
     parser.add_argument('--max_seq_len_to_capture', type=int)
     parser.add_argument('--max_num_batched_tokens', type=int)
+    parser.add_argument('--compilation_config',
+                        type=str,
+                        help='compilation config as json string, e.g. "{\"use_inductor\": true, \"compile_sizes\": [1, 2, 4, 8]}"')
 
     parser.parse_args(namespace=par)
 
@@ -113,8 +117,11 @@ def llm():
     t0 = fmwork.time_get()
 
     # Include these parameters only if set; otherwise let internal vLLM logic set them.
-    optional_params = {"max_seq_len_to_capture", "max_num_batched_tokens"}
+    optional_params = {"max_seq_len_to_capture", "max_num_batched_tokens", "compilation_config"}
     kwargs = {param: getattr(par, param) for param in optional_params if getattr(par, param) is not None}
+    compilation_config = kwargs.get("compilation_config", None)
+    if compilation_config:
+        kwargs["compilation_config"] = json.loads(compilation_config)
 
     var.llm = vllm.LLM(
         dtype                        = par.dtype,
