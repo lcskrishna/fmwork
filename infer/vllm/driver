@@ -84,6 +84,7 @@ def params():
     parser.add_argument('--compilation_config',
                         type=str,
                         help='compilation config as json string, e.g. "{\"use_inductor\": true, \"compile_sizes\": [1, 2, 4, 8]}"')
+    parser.add_argument('--profile', action='store_true', help='enable PyTorch profiler in vLLM')
 
     parser.parse_args(namespace=par)
 
@@ -246,8 +247,12 @@ def run(input_size, output_size, batch_size):
         fmwork.t0()
         #with MADProfiler(backend="rpd", nvtx_tracing=True):
         #    outputs = var.llm.generate(**kwargs)
+        if par.profile:
+            var.llm.start_profile()
         outputs = var.llm.generate(**kwargs)
         torch.cuda.synchronize()
+        if par.profile:
+            var.llm.stop_profile()
         ret = fmwork.t1(
             rep, par.reps,
             input_size, output_size, batch_size,
