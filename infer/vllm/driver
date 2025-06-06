@@ -1,5 +1,10 @@
 #!/usr/bin/env -S python -u
 
+# For rpd profiling region of interest, let's save the start time first thing.
+import time
+start_time = time.time()
+
+
 import argparse
 import json
 import fmwork
@@ -7,6 +12,7 @@ import torch
 import traceback
 import vllm
 #from rocm_mad_profiler import MADProfiler
+
 
 class var: pass
 class par: pass
@@ -84,6 +90,8 @@ def params():
     parser.add_argument('--compilation_config',
                         type=str,
                         help='compilation config as json string, e.g. "{\"use_inductor\": true, \"compile_sizes\": [1, 2, 4, 8]}"')
+    parser.add_argument('--profile_torch', action='store_true', help='Enable torch profiling for last repetition. Requires environment variable VLLM_TORCH_PROFILER_DIR.')
+    parser.add_argument('--profile_rpd', action='store_true', help='Save ROI timestamps for rpd profiling. You need to wrap workload in runTracer.sh.')
 
     parser.parse_args(namespace=par)
 
@@ -243,6 +251,14 @@ def run(input_size, output_size, batch_size):
     for rep in range(par.reps):
         input_batch = fmwork.input_generator(par.model_path, input_size, batch_size, return_tensors='np')
         kwargs['prompt_token_ids'] = input_batch
+
+        if par.profile_torch and rep == par.reps - 1:
+            var.llm.start_profile()
+        if par.profile_rpd and rep == par.reps - 1:
+            # As hipmarkers don't seem to work, let's write timestamps
+            # for start and end of the region of interest ie. last rep.
+            profile_start_time = time.time()-start_time
+
         fmwork.t0()
         #with MADProfiler(backend="rpd", nvtx_tracing=True):
         #    outputs = var.llm.generate(**kwargs)
@@ -254,6 +270,19 @@ def run(input_size, output_size, batch_size):
             par.tensor_parallel,
             par.ignore_eos, outputs,
             par.debug_outputs, par.trace_outputs)
+
+        if par.profile_rpd and rep == par.reps - 1:
+            profile_end_time = time.time()-start_time
+            import os 
+            with open(f'{os.environ['RPDT_FILENAME']}-roi-start', 'w') as f:
+                f.write(f"{profile_start_time}s\n")
+            with open(f'{os.environ['RPDT_FILENAME']}-roi-end', 'w') as f:
+                f.write(f"{profile_end_time}s\n")
+        if par.profile_torch and rep == par.reps - 1:
+            print("writing profile data")
+            var.llm.stop_profile()
+            print("done writing profile data")
+
 
     return ret
 
