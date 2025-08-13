@@ -64,8 +64,6 @@ def params():
         action='store_true')
     parser.add_argument('-s', '--num_scheduler_steps',
         type=int, default=1)
-    parser.add_argument(      '--use_v2_block_manager',
-        action='store_true')
     parser.add_argument(      '--distributed_executor_backend',
         default='mp')
     parser.add_argument('-M', '--max_num_seqs',
@@ -135,7 +133,6 @@ def llm():
         tensor_parallel_size         = par.tensor_parallel,
         trust_remote_code            = True,
         num_scheduler_steps          = par.num_scheduler_steps,
-        use_v2_block_manager         = par.use_v2_block_manager,
         distributed_executor_backend = par.distributed_executor_backend,
         max_num_seqs                 = par.max_num_seqs,
         enable_chunked_prefill       = par.enable_chunked_prefill,
