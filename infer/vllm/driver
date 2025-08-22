@@ -62,6 +62,8 @@ def params():
         type=float, default=0.95)
     parser.add_argument('-e', '--enforce_eager',
         action='store_true')
+    parser.add_argument('-s', '--num_scheduler_steps',
+        type=int, default=1) # Dummy argument, will be removed soon.
     parser.add_argument(      '--distributed_executor_backend',
         default='mp')
     parser.add_argument('-M', '--max_num_seqs',
